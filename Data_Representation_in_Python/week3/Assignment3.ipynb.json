@@ -1,0 +1,163 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Assignment 3 - Building a Custom Visualization\n",
+    "\n",
+    "---\n",
+    "\n",
+    "In this assignment you must choose one of the options presented below and submit a visual as well as your source code for peer grading. The details of how you solve the assignment are up to you, although your assignment must use matplotlib so that your peers can evaluate your work. The options differ in challenge level, but there are no grades associated with the challenge level you chose. However, your peers will be asked to ensure you at least met a minimum quality for a given technique in order to pass. Implement the technique fully (or exceed it!) and you should be able to earn full grades for the assignment.\n",
+    "\n",
+    "\n",
+    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ferreira, N., Fisher, D., & Konig, A. C. (2014, April). [Sample-oriented task-driven visualizations: allowing users to make better, more confident decisions.](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/Ferreira_Fisher_Sample_Oriented_Tasks.pdf) \n",
+    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;In Proceedings of the SIGCHI Conference on Human Factors in Computing Systems (pp. 571-580). ACM. ([video](https://www.youtube.com/watch?v=BI7GAs-va-Q))\n",
+    "\n",
+    "\n",
+    "In this [paper](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/Ferreira_Fisher_Sample_Oriented_Tasks.pdf) the authors describe the challenges users face when trying to make judgements about probabilistic data generated through samples. As an example, they look at a bar chart of four years of data (replicated below in Figure 1). Each year has a y-axis value, which is derived from a sample of a larger dataset. For instance, the first value might be the number votes in a given district or riding for 1992, with the average being around 33,000. On top of this is plotted the 95% confidence interval for the mean (see the boxplot lectures for more information, and the yerr parameter of barcharts).\n",
+    "\n",
+    "<br>\n",
+    "<img src=\"readonly/Assignment3Fig1.png\" alt=\"Figure 1\" style=\"width: 400px;\"/>\n",
+    "<h4 style=\"text-align: center;\" markdown=\"1\">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Figure 1 from (Ferreira et al, 2014).</h4>\n",
+    "\n",
+    "<br>\n",
+    "\n",
+    "A challenge that users face is that, for a given y-axis value (e.g. 42,000), it is difficult to know which x-axis values are most likely to be representative, because the confidence levels overlap and their distributions are different (the lengths of the confidence interval bars are unequal). One of the solutions the authors propose for this problem (Figure 2c) is to allow users to indicate the y-axis value of interest (e.g. 42,000) and then draw a horizontal line and color bars based on this value. So bars might be colored red if they are definitely above this value (given the confidence interval), blue if they are definitely below this value, or white if they contain this value.\n",
+    "\n",
+    "\n",
+    "<br>\n",
+    "<img src=\"readonly/Assignment3Fig2c.png\" alt=\"Figure 1\" style=\"width: 400px;\"/>\n",
+    "<h4 style=\"text-align: center;\" markdown=\"1\">  Figure 2c from (Ferreira et al. 2014). Note that the colorbar legend at the bottom as well as the arrows are not required in the assignment descriptions below.</h4>\n",
+    "\n",
+    "<br>\n",
+    "<br>\n",
+    "\n",
+    "**Easiest option:** Implement the bar coloring as described above - a color scale with only three colors, (e.g. blue, white, and red). Assume the user provides the y axis value of interest as a parameter or variable.\n",
+    "\n",
+    "\n",
+    "**Harder option:** Implement the bar coloring as described in the paper, where the color of the bar is actually based on the amount of data covered (e.g. a gradient ranging from dark blue for the distribution being certainly below this y-axis, to white if the value is certainly contained, to dark red if the value is certainly not contained as the distribution is above the axis).\n",
+    "\n",
+    "**Even Harder option:** Add interactivity to the above, which allows the user to click on the y axis to set the value of interest. The bar colors should change with respect to what value the user has selected.\n",
+    "\n",
+    "**Hardest option:** Allow the user to interactively set a range of y values they are interested in, and recolor based on this (e.g. a y-axis band, see the paper for more details).\n",
+    "\n",
+    "---\n",
+    "\n",
+    "*Note: The data given for this assignment is not the same as the data used in the article and as a result the visualizations may look a little different.*"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "       means    stds y_less y_in_confident    color\n",
+      "index                                              \n",
+      "1992   33312  6510.0  False          False  #2874A6\n",
+      "1993   41861  3193.0  False           True    white\n",
+      "1994   39493  4555.0  False           True  #5DADE2\n",
+      "1995   47743  2264.0   True          False  #B03A2E\n"
+     ]
+    },
+    {
+     "data": {
+      "image/png": "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\nxxtQKi3+yQAAAABJRU5ErkJggg==\n",
+      "text/plain": [
+       "<matplotlib.figure.Figure at 0x7ff1dc390630>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "import scipy.stats as st\n",
+    "\n",
+    "np.random.seed(12345)\n",
+    "\n",
+    "df = pd.DataFrame([np.random.normal(32000,200000,3650), \n",
+    "                   np.random.normal(43000,100000,3650), \n",
+    "                   np.random.normal(43500,140000,3650), \n",
+    "                   np.random.normal(48000,70000,3650)], \n",
+    "                  index=[1992,1993,1994,1995])\n",
+    "df = df.transpose()\n",
+    "\n",
+    "yline = 32000\n",
+    "\n",
+    "\n",
+    "# mean, std, and c\n",
+    "means = df.mean().astype('int')\n",
+    "std_errors = st.t.interval(0.95, len(df)-1, loc=means, scale=st.sem(df))\n",
+    "std_errors = (abs(std_errors[0] - std_errors[1])) // 2\n",
+    "colors=[\"red\", \"green\", \"blue\", \"purple\"]\n",
+    "\n",
+    "yline = int(means.iloc[1])\n",
+    "def get_color(row):\n",
+    "    if yline == int(row['means']):\n",
+    "        return 'white'\n",
+    "    if row['y_less'] & row['y_in_confident']:\n",
+    "        return '#F1948A'\n",
+    "    elif row['y_less'] & (row['y_in_confident'] == False):\n",
+    "        return '#B03A2E'\n",
+    "    elif (row['y_less']==False) & row['y_in_confident']:\n",
+    "        return '#5DADE2'\n",
+    "    return '#2874A6'\n",
+    "\n",
+    "# create new dataframe\n",
+    "means = pd.DataFrame(means).reset_index()\n",
+    "stds = pd.DataFrame(std_errors)\n",
+    "\n",
+    "# create new columns for visualization\n",
+    "df_stats = pd.concat([means, stds], axis=1)\n",
+    "df_stats = df_stats.set_index(['index'])\n",
+    "df_stats.columns = ['means', 'stds']\n",
+    "df_stats['y_less'] = df_stats['means'] > yline\n",
+    "df_stats['y_in_confident'] = abs(df_stats['means'] - yline) <= df_stats['stds']\n",
+    "df_stats['color'] = df_stats.apply(get_color, axis=1)\n",
+    "print(df_stats)\n",
+    "\n",
+    "# create visualization\n",
+    "plt.bar(range(len(df_stats)), df_stats['means'], align='center', color=df_stats['color'],yerr=df_stats['stds'], edgecolor='black')\n",
+    "plt.xticks(range(len(df_stats.columns)), df_stats.index)\n",
+    "#plt.ylabel('Stock price')\n",
+    "plt.xlabel('Years')\n",
+    "plt.title('Assigment 3')\n",
+    "plt.axhline(y=yline)\n",
+    "plt.axis('tight')\n",
+    "plt.show()\n",
+    "\n"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.5.2"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
